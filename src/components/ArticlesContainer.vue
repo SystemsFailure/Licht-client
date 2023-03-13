@@ -64,7 +64,7 @@ import settingsArticlesWindow from '@/components/localWindows/settingsArticlesWi
 export default {
     data() {
         return {
-            visibleWindowOfSettingsArticle: true,
+            visibleWindowOfSettingsArticle: false,
             articlesList: [],
             searchField: '',
         }
@@ -96,9 +96,9 @@ export default {
         },
 
         visibleContextMenu(event, id, it) {
+            console.log(id, it, 'console out by data from event of contextmenu')
             let contextmenu = document.getElementById('context-menu-id')
 
-            // contextmenu.style.display = 'flex'
             this.visibleWindowOfSettingsArticle = true
 
             let {x, y} = this.positionCursor()

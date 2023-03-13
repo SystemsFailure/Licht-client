@@ -37,6 +37,12 @@ export default {
             margin-left: auto;
             width: 15px;
             height: 15px;
+
+            &:hover {
+                cursor: pointer;
+                opacity: .7;
+                transition: .3s;
+            }
         }
     }
 

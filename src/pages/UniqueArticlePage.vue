@@ -29,7 +29,7 @@
                 </div>
                 <div class="central-block">
 
-                    <div class="list-blocks">
+                    <div class="list-blocks" @scroll="scrollList">
 
                         <div class="wrapper-object" v-for="it in blocks" :key="it.id">
 
@@ -200,6 +200,10 @@ export default {
 
             
             }
+        },
+
+        scrollList() {
+            console.log('scrolling')
         },
     },
 }
