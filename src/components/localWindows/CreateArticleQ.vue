@@ -39,8 +39,10 @@ export default {
             addBlockInstance: 'addBlockInstance',
         }),
 
-        createArticle() {
-            this.addBlockInstance(this.savedData_)
+        async createArticle() {
+            await this.addBlockInstance(this.savedData_)
+            this.$emit('closeFunction')
+            this.$router.push('/')
         },
     },
 }

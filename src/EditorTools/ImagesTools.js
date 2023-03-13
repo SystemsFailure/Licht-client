@@ -58,6 +58,7 @@ class ImageTool {
                     try {
                         await store.dispatch('articles/uploadImage', file)
                         url = await store.getters['articles/returnurl']
+                        console.log(url, 'url image 0001')
                         this._createImage(url);
                     } catch (error) {
                         console.log(error)

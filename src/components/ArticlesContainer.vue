@@ -1,5 +1,12 @@
 <template>
     <div class="main-articles">
+
+        <settingsArticlesWindow 
+            id="context-menu-id"
+            v-show="visibleWindowOfSettingsArticle" 
+            @closeWindow="() => {this.visibleWindowOfSettingsArticle = false}"
+        ></settingsArticlesWindow>
+
         <div class="inner">
             <div class="inline-err" v-if="articlesList === []">
                 <span>You don't have nobody an article, create new article. Start to creature</span>
@@ -10,8 +17,14 @@
                 </div>
                 <div class="btn-create-new-articles" @click="() => {this.$router.push('/editor')}">new</div>
             </div>
-            <div class="list">
-                <div class="it-articles" v-for="it in filteredListOfArticles" :key="it.id" @click="viewOnItemId(it)">
+            <div class="list" id="general-list-of-articles">
+                <div 
+                    class="it-articles" 
+                    v-for="it in filteredListOfArticles" 
+                    :key="it.id" 
+                    @click="viewOnItemId(it)"
+                    @contextmenu="visibleContextMenu($event, it.id, it)"
+                >
                     
                     <div class="line-1">
                         <span id="article-title">{{ it.title }}</span>
@@ -47,9 +60,11 @@
 </template>
 <script>
 import { mapActions } from 'vuex';
+import settingsArticlesWindow from '@/components/localWindows/settingsArticlesWindow.vue'
 export default {
     data() {
         return {
+            visibleWindowOfSettingsArticle: true,
             articlesList: [],
             searchField: '',
         }
@@ -79,7 +94,64 @@ export default {
             console.log(it.id)
             this.$router.push(`articles/article/${it.id}`)
         },
+
+        visibleContextMenu(event, id, it) {
+            let contextmenu = document.getElementById('context-menu-id')
+
+            // contextmenu.style.display = 'flex'
+            this.visibleWindowOfSettingsArticle = true
+
+            let {x, y} = this.positionCursor()
+
+            let coordsTarget = contextmenu.getBoundingClientRect()
+            let PerfomanceWidthScreen = window.innerWidth / 2
+
+            if(x > PerfomanceWidthScreen)
+            {
+                console.log(PerfomanceWidthScreen, 'perfomance')
+                if(y > 600)
+                {
+                    contextmenu.style.top = (y - coordsTarget.height) + 'px'
+                    contextmenu.style.left = (x - coordsTarget.width) + 'px'
+                } else {
+                    contextmenu.style.top = y + 'px'
+                    contextmenu.style.left = (x - coordsTarget.width) + 'px'
+                    console.log('wh')
+                }
+            } else {
+                if(y > 700)
+                {
+                    contextmenu.style.top = (y - coordsTarget.height) + 'px'
+                    contextmenu.style.left = x + 'px'
+                }else {
+                    contextmenu.style.top = y + 'px'
+                    contextmenu.style.left = x + 'px'
+                }
+            }
+
+            event.preventDefault()
+        },
+
+        positionCursor(e){
+            let x = 0
+            let y = 0
+            if (!e) {
+                e = window.event;
+            }
+            if (e.pageX || e.pageY){
+                x = e.pageX;
+                y = e.pageY;
+            } else if (e.clientX || e.clientY){
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+            return {x: x, y: y}
+        },
     },
+
+    components: {
+        settingsArticlesWindow,
+    }
 }
 </script>
 <style lang="scss" scoped>
@@ -88,7 +160,7 @@ export default {
     width: 100%;
     height: 100%;
     float: right;
-
+    // position: relative;
     .inner {
         width: 100%;
         height: 100%;

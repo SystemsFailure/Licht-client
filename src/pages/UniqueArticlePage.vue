@@ -76,7 +76,7 @@
     </div>
 </template>
 <script>
-import {mapActions, mapState} from 'vuex';
+import {mapActions, mapState, mapMutations} from 'vuex';
 
 export default {
     data() {
@@ -161,6 +161,10 @@ export default {
     },
 
     async mounted() {
+        if(localStorage.getItem('author-id')) 
+        {
+            this.setauthorId(localStorage.getItem('author-id'))
+        }
         this.blocks = []
         let articleId = this.$route.params.id
         if(articleId) {
@@ -175,6 +179,10 @@ export default {
     methods: {
         ...mapActions('articles', {
             getArticleByIdContent: 'getArticleByIdContent',
+        }),
+
+        ...mapMutations('articles', {
+            setauthorId: 'setauthorId',
         }),
 
         setDataArticleToDocument() {

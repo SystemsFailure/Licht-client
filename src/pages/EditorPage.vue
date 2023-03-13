@@ -50,6 +50,12 @@ import CreateArticleQ from '@/components/localWindows/CreateArticleQ.vue'
 
 export default {
     async mounted() {
+
+        if(localStorage.getItem('author-id')) 
+        {
+            this.setauthorId(localStorage.getItem('author-id'))
+        }
+
         if(this.checkboxValue === true) {
             this.authornameField = this.author.name
         }
@@ -110,7 +116,7 @@ export default {
         });
 
         const saveButton = document.getElementById('save-button');
-        const output = document.getElementById('output');
+        // const output = document.getElementById('output');
 
         saveButton.addEventListener('click', () => {
 
@@ -125,7 +131,7 @@ export default {
                     descriptionField: this.descriptionField,
                 })
 
-                output.innerHTML = JSON.stringify(savedData, null, 4);
+                // output.innerHTML = JSON.stringify(savedData, null, 4);
                 this.savedData_ = savedData
                 this.visibleQuestionWindow = true
             })
@@ -186,6 +192,7 @@ export default {
 
         ...mapMutations('articles', {
             setdataFields: 'setdataFields',
+            setauthorId: 'setauthorId',
         }),
 
         ...mapActions('regis', {

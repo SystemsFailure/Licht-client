@@ -147,7 +147,8 @@ const articles_module = {
                         subId: state.savedData.blocks.length > 1 ? state.savedData.blocks[0].id + '-' +  state.savedData.blocks[1].id : state.savedData.blocks[0].id,
                         atCreated: Timestamp.fromDate(new Date()),
                     }
-                    await setDoc(doc(db, "blocks", el.id), data);
+                    const result = await setDoc(doc(db, "blocks", el.id), data);
+                    console.log(result, 'result who been upload to base')
                     commit('filListIds', el.id?el.id:null);
                 }
                 else
