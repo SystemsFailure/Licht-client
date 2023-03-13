@@ -1,16 +1,23 @@
-import { doc, setDoc, collection, addDoc, query, where, getDocs, updateDoc, increment, getDoc, } from "firebase/firestore";
+import { doc, setDoc, collection, addDoc, query, where, getDocs, updateDoc, increment, getDoc, Timestamp, orderBy} from "firebase/firestore";
 import { db } from "@/main";
 import { storage } from "@/main";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 
 const articles_module = {
     state: () => ({
-        authorId: 'kkyvqdpvr7TniL2T5s5n',
+        authorId: '',
+
+        dataFields: {},
         savedData: {},
+
         listOfIdCurrentArticle: [],
+
         authorArticleList: [],
         listArticles: [],
         blocks: [],
+        
+        DataGettedArticleInstance: {},
+
         file: null,
         progress: null,
         url: null,
@@ -51,7 +58,13 @@ const articles_module = {
         },
         returncacheFullPathsList(st) {
             return st.cacheFullPathsList
-        }
+        },
+        returndataFields(st) {
+            return st.dataFields
+        },
+        returnDataGettedArticleInstance(st) {
+            return st.DataGettedArticleInstance
+        },
     },
 
     mutations: {
@@ -80,6 +93,12 @@ const articles_module = {
         setresult(st, vl) {
             st.result = vl
         },
+        setdataFields(s, v) {
+            s.dataFields = v
+        },
+        setDataGettedArticleInstance(st, vl) {
+            st.DataGettedArticleInstance = vl
+        },
         filListIds(state, vl) {
             state.listOfIdCurrentArticle.push(vl)
         },
@@ -101,6 +120,10 @@ const articles_module = {
         unfilBlocks(st) {
             st.blocks = []
         },
+        unfilAuthorArticlesList(st) {
+            st.authorArticleList = []
+        },
+
     },
 
     actions: {
@@ -122,6 +145,7 @@ const articles_module = {
                         data: el.data ? el.data : null,
                         time: state.savedData.blocks.time ? state.savedData.blocks.time : null,
                         subId: state.savedData.blocks.length > 1 ? state.savedData.blocks[0].id + '-' +  state.savedData.blocks[1].id : state.savedData.blocks[0].id,
+                        atCreated: Timestamp.fromDate(new Date()),
                     }
                     await setDoc(doc(db, "blocks", el.id), data);
                     commit('filListIds', el.id?el.id:null);
@@ -135,32 +159,39 @@ const articles_module = {
             const listIds = getters.returnListIds
             if(listIds.length != 0 || listIds != [] || listIds != null || listIds != undefined)
             {
-                const data_ = {
-                    authorId: state.authorId,
-                    title: 'default',
-                    description: 'default',
-                    arrayID: listIds,
-                    arrayForks: [],
-                    arrayLikes: 0,
-                    arrayViews: 0,
-                    subId: state.savedData.blocks.length > 1 ? state.savedData.blocks[0].id + '-' +  state.savedData.blocks[1].id : state.savedData.blocks[0].id,
+                if(getters.returndataFields != {}) {
+                    const dataFields_ = getters.returndataFields
+                    const data_ = {
+                        authorId: state.authorId,
+                        authorName: dataFields_.authornameField,
+                        title: dataFields_.articleTitleField,
+                        description: dataFields_.descriptionField,
+                        arrayID: listIds,
+                        arrayForks: [],
+                        arrayLikes: 0,
+                        arrayViews: 0,
+                        subId: state.savedData.blocks.length > 1 ? state.savedData.blocks[0].id + '-' +  state.savedData.blocks[1].id : state.savedData.blocks[0].id,
+                    }
+                    const docRef = await addDoc(collection(db, "articles"), data_);
+                    console.log("Document written with ID: ", docRef.id);
+                } else {
+                    console.log('data fields is null === {} ', getters.returndataFields)
+                    return;
                 }
-                const docRef = await addDoc(collection(db, "articles"), data_);
-                console.log("Document written with ID: ", docRef.id);
             }
             commit('unfilcacheFullPathsList')
         },
 
-        async getAuthorArticles({commit, state}, authorId) {
-            authorId = state.authorId
-            // const docInstance = null
+        async getAuthorArticles({commit, getters}, authorId) {
             if(authorId)
             {
+                commit('unfilAuthorArticlesList') // Unfil => clear, empty, destroy of list
                 const uquery = query(collection(db, "articles"), where("authorId", "==", authorId));
                 const querySnapshot = await getDocs(uquery);
                 querySnapshot.forEach((doc) => {
-                    commit('filAuthorArticleList', {
+                    const data = {
                         id: doc.id,
+                        authorName: doc.data().authorName,
                         authorId: doc.data().authorId,
                         arrayID: doc.data().arrayID,
                         title: doc.data().title,
@@ -169,15 +200,16 @@ const articles_module = {
                         arrayLikes: doc.data().arrayLikes,
                         arrayViews: doc.data().arrayViews,
                         subId: doc.data().subId,
-                    })
+                    }
+                    commit('filAuthorArticleList', data)
                     console.log(doc.id, " => ", doc.data());
                 });
-
+                return getters.returnauthorArticleList
             }
         },
 
         async getBlocks({state, commit}, blockId) {
-            const q = query(collection(db, "blocks"), where("subId", "==", blockId));
+            const q = query(collection(db, "blocks"), where("subId", "==", blockId), orderBy('atCreated', 'asc'));
             const querySnapshot = await getDocs(q);
             querySnapshot.forEach((doc) => {
                 if(doc.exists() && doc.data()) {
@@ -195,18 +227,35 @@ const articles_module = {
             console.log(state.blocks[0], 'blocks');
         },
 
-        async getArticleByIdContent({dispatch}, id) {
+        async getArticleByIdContent({dispatch, getters, commit}, id) {
+            commit('unfilBlocks')
+
             const docRef = doc(db, "articles", id);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                if(docSnap.data()?.subId)
+                if(docSnap.data().subId)
                 {
+                    
+                    commit('setDataGettedArticleInstance', {
+                        id: docSnap.id,
+                        arrayForks: docSnap.data().arrayForks,
+                        arrayLikes: docSnap.data().arrayLikes,
+                        arrayViews: docSnap.data().arrayViews,
+                        authorId: docSnap.data().authorId,
+                        authorName: docSnap.data().authorName,
+                        description: docSnap.data().description,
+                        subId: docSnap.data().subId,
+                        title: docSnap.data().title,
+                    })
+
                     dispatch('getBlocks', docSnap.data().subId)
                 }
             } else {
                 console.log("No such document!");
+                return;
             }
+            return getters.returmblocks
         },
 
         async getArticles({commit}) {
@@ -216,6 +265,7 @@ const articles_module = {
                 commit('fillistArticles', {
                     id: doc.id,
                     authorId: doc.data().authorId,
+                    authorName: doc.data().authorName,
                     arrayID: doc.data().arrayID,
                     title: doc.data().title,
                     description: doc.data().description,

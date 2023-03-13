@@ -16,12 +16,28 @@ const regis = {
         setresultRegis(s, v) {
             s.resultRegis = v
         },
+        
     },
+
+    getters: {
+        returnAuthor(st) {
+            return st.author
+        },
+    },
+
     actions: {
         async createAccount({state, dispatch}, data) {
             await dispatch('existenceTest', data)
             if(state.resultRegis === true) {
                 const docRef = await addDoc(collection(db, "authors"), {
+                    arrayFollowers: [],
+                    arrayFollowings: [],
+                    company: '',
+                    country: '',
+                    twitterLink: '',
+                    bio: '',
+                    speciality: '',
+                    img: '',
                     name: data.name,
                     email: data.email,
                     password: data.password,
@@ -31,7 +47,7 @@ const regis = {
             }
         },
 
-        async getAuthor({ commit }, id) {
+        async getAuthor({ commit, getters }, id) {
 
             const docRef = doc(db, "authors", id);
             const docSnap = await getDoc(docRef);
@@ -49,9 +65,20 @@ const regis = {
                 email: docSnap.data().email,
                 password: docSnap.data().password,
                 index: docSnap.data().index,
+                arrayFollowers: docSnap.data().arrayFollowers,
+                arrayFollowings: docSnap.data().arrayFollowings,
+                speciality: docSnap.data().speciality,
+                bio: docSnap.data().bio,
+                company: docSnap.data().company,
+                country: docSnap.data().country,
+                twitterLink: docSnap.data().twitterLink,
+                img: docSnap.data().img,
+
             }
 
             commit('setauthor', data)
+
+            return getters.returnAuthor
         },
 
         async getAsyncAllAuthors() {

@@ -30,6 +30,10 @@ export default {
         }
     },
 
+    mounted() {
+        // document.querySelectorAll
+    },
+
     methods: {
         ...mapActions('articles', {
             addBlockInstance: 'addBlockInstance',

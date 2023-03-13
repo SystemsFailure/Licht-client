@@ -1,62 +1,84 @@
 <template>
     <div class="main-articles">
         <div class="inner">
+            <div class="inline-err" v-if="articlesList === []">
+                <span>You don't have nobody an article, create new article. Start to creature</span>
+            </div>
             <div class="inline">
                 <div class="search-comp">
-                    <input type="text" placeholder="search...">
+                    <input type="text" placeholder="search..." v-model="searchField">
                 </div>
                 <div class="btn-create-new-articles" @click="() => {this.$router.push('/editor')}">new</div>
             </div>
             <div class="list">
-                <div class="it-articles" v-for="it in articlesList" :key="it.id">
+                <div class="it-articles" v-for="it in filteredListOfArticles" :key="it.id" @click="viewOnItemId(it)">
+                    
                     <div class="line-1">
                         <span id="article-title">{{ it.title }}</span>
                         <span id="mode">{{ it.mode }}</span>
                     </div>
+
                     <div class="line-2">
-                        <span id="count-forks">{{ it.countForks }}</span> <span id="forks-text">forks</span>
+                        <span id="count-forks">{{ it.arrayForks.length }}</span> <span id="forks-text">forks</span>
                     </div>
+
                     <div class="line-3">
-                        <span>{{ it.desc }}</span>
+                        <span>{{ it.description }}</span>
                     </div>
+
                     <div class="line-4">
                         <div class="wrapper-">
-                            <span id="views-count">{{ it.countViews }}</span>
+                            <span id="views-count">{{ it.arrayViews }}</span>
                             <span>views</span>
                         </div>
 
                         <div class="wrapper--">
-                            <span id="likes-count">{{ it.countLikes }}</span>
+                            <span id="likes-count">{{ it.arrayLikes }}</span>
                             <span>likes</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="load-more">load more</div>
+                <div v-if="articlesList === []" class="load-more">load more</div>
             </div>
 
         </div>
     </div>
 </template>
 <script>
+import { mapActions } from 'vuex';
 export default {
     data() {
         return {
-            articlesList: [
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'test-client', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Nano-neiron', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Code-box', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-                {id: 0, mode: 'public', desc: 'my custom article science group work hidden blur more of tm', title: 'Ghost', countViews: '13.4M', countForks: '153K', countLikes: '524M'},
-            ]
+            articlesList: [],
+            searchField: '',
         }
+    },
+
+    async mounted() {
+        const arr = await this.getAuthorArticles(localStorage.getItem('author-id'))
+        this.articlesList = arr
+    },
+
+    computed: {
+        
+        filteredListOfArticles() {
+            return this.articlesList.filter(it => {
+                return it.title.toLowerCase().indexOf(this.searchField.toLowerCase()) > -1
+            })
+        },
+
+    },
+
+    methods: {
+        ...mapActions('articles', {
+            getAuthorArticles: 'getAuthorArticles',
+        }),
+
+        viewOnItemId(it) {
+            console.log(it.id)
+            this.$router.push(`articles/article/${it.id}`)
+        },
     },
 }
 </script>
@@ -70,6 +92,24 @@ export default {
     .inner {
         width: 100%;
         height: 100%;
+        position: relative;
+
+        .inline-err {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
+
+            span {
+                // margin-left: 18%;
+            }
+        }
 
 
         .list {

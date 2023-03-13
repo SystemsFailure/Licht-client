@@ -6,14 +6,14 @@
                 <span>Articles configurations</span>
             </div>
             <div class="wrapper-box-for-inp-author-name-id">
-                <input type="text" placeholder="author name" id="inp-name-author-id" v-model="authornameField">
+                <input type="text" placeholder="author name, min 4 symbols" id="inp-name-author-id" v-model="authornameField">
                 <div class="wrapper-box-for-check-box-id">
                     <span>default name</span>
                     <input type="checkbox" name="" id="inp-check-box-id" v-model="checkboxValue">
                 </div>
             </div>
-            <input type="text" placeholder="name article" id="inp-name-art-id" v-model="nameField">
-            <textarea name="" id="textarea-desc-art-id" cols="30" rows="10" placeholder="description article" v-model="descriptionField"></textarea>
+            <input type="text" placeholder="name article, min 10 symbols" id="inp-name-art-id" v-model="nameField">
+            <textarea name="" id="textarea-desc-art-id" cols="30" rows="10" placeholder="description article, min 10 symbols" v-model="descriptionField"></textarea>
             
             <button id="save-button">create</button>
         </div>
@@ -24,14 +24,14 @@
 
             </div>
 
-            <div class="wraooer">
+            <!-- <div class="wraooer">
                 <pre v-highlightjs="codespace" class="per-code-cl">
                     <code class="javascript code-cl" id="code-id"></code>
                 </pre>
-            </div>
-            <div class="wrapper-container-for-output">
+            </div> -->
+            <!-- <div class="wrapper-container-for-output">
                 <pre id="output"></pre>
-            </div>
+            </div> -->
         </div>
 
     </div>
@@ -43,7 +43,7 @@ import link from '@editorjs/link';
 import code from '@editorjs/code'
 import {ImageTool} from '@/EditorTools/ImagesTools';
 import Paragraph from '@editorjs/paragraph'
-import { mapActions, mapState } from 'vuex';
+import { mapActions, mapState, mapMutations } from 'vuex';
 
 import CreateArticleQ from '@/components/localWindows/CreateArticleQ.vue'
 
@@ -101,17 +101,17 @@ export default {
 
         saveButton.addEventListener('click', () => {
 
-            if(this.validationFields()) {
+            if(!this.validationFields()) {
                 console.log('validation is null');
                 return;
             }
             editor.save().then( savedData => {
-                for (const el of savedData.blocks) {
-                    if(el.type === 'code')
-                    {
-                        this.codespace = el.data.code
-                    }
-                }
+                this.setdataFields({
+                    authornameField: this.checkboxValue ? 'default name' : this.authornameField,
+                    articleTitleField: this.nameField,
+                    descriptionField: this.descriptionField,
+                })
+
                 output.innerHTML = JSON.stringify(savedData, null, 4);
                 this.savedData_ = savedData
                 this.visibleQuestionWindow = true
@@ -159,18 +159,19 @@ export default {
             deleteImagesThroughCache: 'deleteImagesThroughCache',
         }),
 
+        ...mapMutations('articles', {
+            setdataFields: 'setdataFields',
+        }),
+
         validationFields() {
             if(this.nameField && this.nameField != '' && this.nameField.length > 4) {
                 if(this.descriptionField && this.descriptionField != '' && this.descriptionField.length > 10) {
-                    if(this.authornameField && this.authornameField != '' && this.authornameField.length > 10 || this.checkboxValue === true) {
-                        if(this.checkboxValue === true)
-                        {
-                            console.log('success')
-                            return true
-                        } else {
-                            console.log('no success')
-                            return false
-                        }
+                    if(this.authornameField && this.authornameField != '' && this.authornameField.length > 10) {
+                        console.log('success')
+                        return true
+                    } else {
+                        console.log('no success')
+                        return false
                     }
                 }
             }

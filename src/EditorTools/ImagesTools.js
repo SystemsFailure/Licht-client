@@ -98,13 +98,23 @@ class ImageTool {
     
 
     save(blockContent){
-        const image = blockContent.querySelector('img');
-        const caption = blockContent.querySelector('input');
+        // const image = blockContent.querySelector('img');
+        const images = blockContent.querySelectorAll('img');
+        const captions = blockContent.querySelectorAll('input');
+
+        if(images.length != 0) {
+            for (let index = 0; index < images.length; index++) {
+                const img = images[index];
     
-        return {
-          url: image.src,
-          caption: caption.value
+                return {
+                    url: img.src,
+                    caption: captions[index].value ? captions[index].value : '',
+                }
+                
+            }
         }
+
+
     }
 }
 
