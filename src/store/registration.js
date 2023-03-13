@@ -48,16 +48,8 @@ const regis = {
         },
 
         async getAuthor({ commit, getters }, id) {
-
             const docRef = doc(db, "authors", id);
             const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                console.log("Document data:", docSnap.data());
-            } else {
-            // doc.data() will be undefined in this case
-                console.log("No such document!");
-            }
 
             let data = {
                 id: docSnap.id,

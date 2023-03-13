@@ -16,6 +16,7 @@
             <textarea name="" id="textarea-desc-art-id" cols="30" rows="10" placeholder="description article, min 10 symbols" v-model="descriptionField"></textarea>
             
             <button id="save-button">create</button>
+            <!-- <span>hello</span> -->
         </div>
 
 
@@ -48,7 +49,16 @@ import { mapActions, mapState, mapMutations } from 'vuex';
 import CreateArticleQ from '@/components/localWindows/CreateArticleQ.vue'
 
 export default {
-    mounted() {
+    async mounted() {
+        if(localStorage.getItem('author-id')) {
+            
+            this.author = await this.getAuthor(localStorage.getItem('author-id'))
+            console.log('%c author id is exits', 'color: teal;')
+
+        } else {
+            console.log('%c author id is null or undefined', 'color: red;')
+        }
+
         window.onunload = () => {
             this.toDeleteAllChachedImages()
         };
@@ -107,7 +117,7 @@ export default {
             }
             editor.save().then( savedData => {
                 this.setdataFields({
-                    authornameField: this.checkboxValue ? 'default name' : this.authornameField,
+                    authornameField: this.checkboxValue && this.author != {} ? this.author.name : this.authornameField,
                     articleTitleField: this.nameField,
                     descriptionField: this.descriptionField,
                 })
@@ -161,6 +171,10 @@ export default {
 
         ...mapMutations('articles', {
             setdataFields: 'setdataFields',
+        }),
+
+        ...mapActions('regis', {
+            getAuthor: 'getAuthor',
         }),
 
         validationFields() {
