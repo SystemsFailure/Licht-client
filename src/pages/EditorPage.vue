@@ -16,7 +16,7 @@
             <textarea name="" id="textarea-desc-art-id" cols="30" rows="10" placeholder="description article, min 10 symbols" v-model="descriptionField"></textarea>
             
             <button id="save-button">create</button>
-            <!-- <span>hello</span> -->
+            <!-- <span>{{ this.author.name }}</span> -->
         </div>
 
 
@@ -50,6 +50,9 @@ import CreateArticleQ from '@/components/localWindows/CreateArticleQ.vue'
 
 export default {
     async mounted() {
+        if(this.checkboxValue === true) {
+            this.authornameField = this.author.name
+        }
         if(localStorage.getItem('author-id')) {
             
             this.author = await this.getAuthor(localStorage.getItem('author-id'))
@@ -145,6 +148,16 @@ export default {
         }),
     },
 
+    watch: {
+        checkboxValue: {
+            handler(value) {
+                if(value === true) this.authornameField = this.author.name
+                else this.authornameField = ''
+            },
+            deep: true,
+        }
+    },
+
     data() {
         return {
             listItems: [
@@ -154,10 +167,12 @@ export default {
             visibleQuestionWindow: false,
             savedData_: [],
 
+            author: {},
+
             nameField: '',
             descriptionField: '',
             authornameField: '',
-            checkboxValue: true,
+            checkboxValue: false,
         }
     },
     components: {
